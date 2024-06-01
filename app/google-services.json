@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901027836611",
+    "project_id": "movie-shelf-b76a3",
+    "storage_bucket": "movie-shelf-b76a3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901027836611:android:83f7f17e78c79099526876",
+        "android_client_info": {
+          "package_name": "com.sarthak.movieshelf"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASRjiAbYNqrp3r8hITbFeu0xO8Fk8S6qM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
