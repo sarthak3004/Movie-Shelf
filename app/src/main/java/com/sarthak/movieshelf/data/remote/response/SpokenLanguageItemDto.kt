@@ -1,6 +1,5 @@
 package com.sarthak.movieshelf.data.remote.response
 
-data class ProductionCountry(
-    val iso_3166_1: String,
+data class SpokenLanguageItemDto (
     val name: String
 )

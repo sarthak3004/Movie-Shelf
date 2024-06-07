@@ -2,4 +2,6 @@
     <string name="app_name">Movie Shelf</string>
     <string name="directed_by">DIRECTED BY</string>
     <string name="ratings">RATINGS</string>
+    <string name="home_screen">home_screen</string>
+    <string name="movie_details_screen">movie_details_screen</string>
 </resources>

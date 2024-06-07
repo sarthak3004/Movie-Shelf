@@ -1,6 +1,5 @@
 package com.sarthak.movieshelf.data.remote.response
 
-data class Genre(
-    val id: Int,
+data class ProductionCompanyItemDto(
     val name: String
 )
