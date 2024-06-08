@@ -10,6 +10,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.sarthak.movieshelf.ui.basicSearch.BasicSearchScreen
 import com.sarthak.movieshelf.ui.home.HomeScreen
 import com.sarthak.movieshelf.ui.movieDetails.MovieDetailsScreen
 import com.sarthak.movieshelf.ui.theme.MovieShelfTheme
@@ -54,6 +55,11 @@ fun Navigation() {
                     navController = navController,
                     id = id
                 )
-            }
         }
+
+        composable(Route.BASIC_SEARCH_SCREEN) {
+            BasicSearchScreen(navController = navController)
+        }
+
     }
+}

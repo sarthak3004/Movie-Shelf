@@ -4,16 +4,30 @@ import com.sarthak.movieshelf.data.remote.response.CastDto
 import com.sarthak.movieshelf.data.remote.response.CrewDto
 import com.sarthak.movieshelf.data.remote.response.MinimalMovieItemDto
 import com.sarthak.movieshelf.data.remote.response.MovieItemDto
+import com.sarthak.movieshelf.data.remote.response.MovieListResponseDto
 import com.sarthak.movieshelf.data.remote.response.VideoItemDto
 import com.sarthak.movieshelf.domain.model.Cast
 import com.sarthak.movieshelf.domain.model.Crew
 import com.sarthak.movieshelf.domain.model.MinimalMovieItem
 import com.sarthak.movieshelf.domain.model.MovieItem
+import com.sarthak.movieshelf.domain.model.MovieListResponseItem
 import com.sarthak.movieshelf.domain.model.VideoItem
 
 fun MinimalMovieItemDto.toMinimalMovieItem() = MinimalMovieItem(
     id = id,
-    posterPath = poster_path ?: ""
+    posterPath = poster_path ?: "",
+    title = title ?: "",
+    releaseDate = release_date ?: ""
+)
+
+fun MovieListResponseDto.toMovieListResponseItem() = MovieListResponseItem(
+    page = page,
+    totalPages = if(total_pages > 500) {
+        500
+    } else total_pages,
+    moviesList = results.map {
+        it.toMinimalMovieItem()
+    }
 )
 
 fun VideoItemDto.toVideoItem() = VideoItem(

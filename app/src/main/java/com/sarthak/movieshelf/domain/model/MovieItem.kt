@@ -1,11 +1,5 @@
 package com.sarthak.movieshelf.domain.model
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.sarthak.movieshelf.data.remote.response.CreditsDto
-import com.sarthak.movieshelf.data.remote.response.VideosResponseDto
-import java.time.LocalDateTime
-
 data class MovieItem(
     val id: Int = -1,
     val backdropPath: String = "",

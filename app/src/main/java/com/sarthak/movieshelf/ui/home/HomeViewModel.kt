@@ -1,12 +1,12 @@
 package com.sarthak.movieshelf.ui.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sarthak.movieshelf.data.remote.api.TmdbApi.Companion.API_KEY
+import com.sarthak.movieshelf.domain.model.MovieListResponseItem
 import com.sarthak.movieshelf.domain.repository.MovieRepository
-import com.sarthak.movieshelf.domain.model.MinimalMovieItem
 import com.sarthak.movieshelf.utils.FetchResult
+import com.sarthak.movieshelf.utils.MOVIES_LIST_TYPE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,16 +21,17 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState())
     val state: StateFlow<HomeState> = _state
     init {
-        Log.d("HOMEVIEWMODEL", API_KEY)
         viewModelScope.launch {
             getTrendingMoviesForWeek()
+            getUpcomingMovies()
+            getTopRatedMovies()
         }
     }
 
     private suspend fun getTrendingMoviesForWeek() {
         viewModelScope.launch {
 
-            movieRepository.getTrendingMoviesForWeek(API_KEY).collect {fetchResult ->
+            movieRepository.getMoviesList(MOVIES_LIST_TYPE.TRENDING, API_KEY).collect { fetchResult ->
                 when(fetchResult) {
                     is FetchResult.Error -> {
                         _state.value = _state.value.copy(
@@ -38,7 +39,7 @@ class HomeViewModel @Inject constructor(
                                 isLoading = false,
                                 isError = true,
                                 errorMessage = fetchResult.message,
-                                trendingMovies = emptyList()
+                                moviesResponse = MovieListResponseItem()
                             )
                         )
                     }
@@ -48,7 +49,7 @@ class HomeViewModel @Inject constructor(
                                 isLoading = true,
                                 isError = false,
                                 errorMessage = "",
-                                trendingMovies = emptyList()
+                                moviesResponse = MovieListResponseItem()
                             )
                         )
                     }
@@ -59,7 +60,7 @@ class HomeViewModel @Inject constructor(
                                     isLoading = false,
                                     isError = false,
                                     errorMessage = "",
-                                    trendingMovies = fetchResult.data!!
+                                    moviesResponse = fetchResult.data!!
                                 )
                             )
                         }
@@ -67,18 +68,103 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
 
+    private suspend fun getTopRatedMovies() {
+        viewModelScope.launch {
+
+            movieRepository.getMoviesList(MOVIES_LIST_TYPE.TOP_RATED, API_KEY).collect { fetchResult ->
+                when(fetchResult) {
+                    is FetchResult.Error -> {
+                        _state.value = _state.value.copy(
+                            topRatedState = _state.value.topRatedState.copy(
+                                isLoading = false,
+                                isError = true,
+                                errorMessage = fetchResult.message,
+                                moviesResponse = MovieListResponseItem()
+                            )
+                        )
+                    }
+                    is FetchResult.Loading -> {
+                        _state.value = _state.value.copy(
+                            topRatedState = _state.value.topRatedState.copy(
+                                isLoading = true,
+                                isError = false,
+                                errorMessage = "",
+                                moviesResponse = MovieListResponseItem()
+                            )
+                        )
+                    }
+                    is FetchResult.Success -> {
+                        fetchResult.data.let {
+                            _state.value = _state.value.copy(
+                                topRatedState = _state.value.topRatedState.copy(
+                                    isLoading = false,
+                                    isError = false,
+                                    errorMessage = "",
+                                    moviesResponse = fetchResult.data!!
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun getUpcomingMovies() {
+        viewModelScope.launch {
+
+            movieRepository.getMoviesList(MOVIES_LIST_TYPE.UPCOMING, API_KEY).collect { fetchResult ->
+                when(fetchResult) {
+                    is FetchResult.Error -> {
+                        _state.value = _state.value.copy(
+                            upcomingState = _state.value.upcomingState.copy(
+                                isLoading = false,
+                                isError = true,
+                                errorMessage = fetchResult.message,
+                                moviesResponse = MovieListResponseItem()
+                            )
+                        )
+                    }
+                    is FetchResult.Loading -> {
+                        _state.value = _state.value.copy(
+                            upcomingState = _state.value.upcomingState.copy(
+                                isLoading = true,
+                                isError = false,
+                                errorMessage = "",
+                                moviesResponse = MovieListResponseItem()
+                            )
+                        )
+                    }
+                    is FetchResult.Success -> {
+                        fetchResult.data.let {
+                            _state.value = _state.value.copy(
+                                upcomingState = _state.value.upcomingState.copy(
+                                    isLoading = false,
+                                    isError = false,
+                                    errorMessage = "",
+                                    moviesResponse = fetchResult.data!!
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 
 
 data class HomeState(
-    var trendingState: TrendingState = TrendingState()
+    var trendingState: MoviesListState = MoviesListState(),
+    var upcomingState: MoviesListState = MoviesListState(),
+    var topRatedState: MoviesListState = MoviesListState(),
 )
 
-data class TrendingState(
-    var trendingMovies: List<MinimalMovieItem> = emptyList(),
+data class MoviesListState(
+    var moviesResponse: MovieListResponseItem = MovieListResponseItem(),
     var isError: Boolean = false,
     var isLoading: Boolean = false,
     var errorMessage: String = ""

@@ -3,9 +3,9 @@ package com.sarthak.movieshelf.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -18,14 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sarthak.movieshelf.R
 import com.sarthak.movieshelf.domain.model.MinimalMovieItem
 import com.sarthak.movieshelf.utils.IMAGE_BASE_URL
 
@@ -56,19 +55,16 @@ fun ErrorScreen(errorMessage: String = "ERROR!!!", modifier: Modifier = Modifier
     }
 }
 @Composable
-fun MoviePosterForList(item: MinimalMovieItem, navController: NavHostController) {
+fun MoviePosterForList(item: MinimalMovieItem, navController: NavHostController, modifier: Modifier = Modifier) {
     val imgUrl = "${IMAGE_BASE_URL}w500/${item.posterPath}"
     AsyncImage(
         model = ImageRequest.Builder(context = LocalContext.current)
             .data(imgUrl)
             .crossfade(true)
             .build(),
-//        error = painterResource(id = R.drawable.mockposter92),
-//        placeholder = painterResource(id = R.drawable.mockposter500),
         contentDescription = null,
         contentScale = ContentScale.Fit,
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .clickable {
                 navController.navigate(
@@ -85,11 +81,12 @@ fun MoviePosterList(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.25F)
+            .height((screenHeight * 0.2).dp)
     ) {
         items(moviesList) {item ->
             MoviePosterForList(item, navController)
