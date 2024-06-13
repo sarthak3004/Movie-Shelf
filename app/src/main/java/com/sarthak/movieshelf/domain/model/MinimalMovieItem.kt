@@ -1,10 +1,12 @@
 package com.sarthak.movieshelf.domain.model
 
+import com.google.firebase.Timestamp
+
 data class MinimalMovieItem (
     val id: Int,
     val posterPath: String,
     val title: String,
-    val releaseDate: String
+    val releaseDate: String,
 )
 
 fun MinimalMovieItem.getReleaseYear(): String {

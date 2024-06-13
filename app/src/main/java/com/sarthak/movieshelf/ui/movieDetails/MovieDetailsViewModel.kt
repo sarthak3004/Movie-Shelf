@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sarthak.movieshelf.data.remote.api.TmdbApi.Companion.API_KEY
 import com.sarthak.movieshelf.domain.model.MovieItem
+import com.sarthak.movieshelf.domain.model.Review
 import com.sarthak.movieshelf.domain.repository.MovieRepository
+import com.sarthak.movieshelf.service.FireStoreService
 import com.sarthak.movieshelf.utils.FetchResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
     private val movieRepository: MovieRepository,
+    private val fireStoreService: FireStoreService,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     private val movieId = checkNotNull(savedStateHandle.get<Int>("id"))
@@ -24,9 +27,28 @@ class MovieDetailsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getMovieById(movieId)
+            getMovieShelfRatingAverageAndCount()
+            getReviewsWithUsername()
         }
     }
 
+    private fun getReviewsWithUsername() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                reviewsWithUsername = fireStoreService.getReviews(movieId)
+            )
+        }
+    }
+
+    private fun getMovieShelfRatingAverageAndCount() {
+        viewModelScope.launch {
+            val ratingAverageAndCount = fireStoreService.getRatingAverageAndCount(movieId)
+            _state.value = _state.value.copy(
+                movieShelfRatingAverage = ratingAverageAndCount.first,
+                movieShelfRatingCount = ratingAverageAndCount.second
+            )
+        }
+    }
     private suspend fun getMovieById(movieId: Int) {
         viewModelScope.launch {
             getMovieDetailsById()
@@ -59,12 +81,12 @@ class MovieDetailsViewModel @Inject constructor(
                         )
                     }
                     is FetchResult.Success -> {
-                        fetchResult.data.let {
+                        fetchResult.data?.let {
                             _state.value = _state.value.copy(
                                 isLoading = false,
                                 isError = false,
                                 errorMessage = "",
-                                movieItem = fetchResult.data!!
+                                movieItem = fetchResult.data
                             )
                         }
                     }
@@ -79,7 +101,10 @@ class MovieDetailsViewModel @Inject constructor(
 
 data class MovieDetailsState(
     val movieItem: MovieItem = MovieItem(),
+    val movieShelfRatingAverage: Float = -1.0F,
+    val movieShelfRatingCount: Int  = -1,
     val isLoading: Boolean = false,
     val isError: Boolean = false,
-    val errorMessage: String = ""
+    val errorMessage: String = "",
+    val reviewsWithUsername: List<Pair<Review, String>> = emptyList()
 )

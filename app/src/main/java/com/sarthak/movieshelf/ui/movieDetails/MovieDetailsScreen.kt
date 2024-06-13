@@ -31,12 +31,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -72,7 +76,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -83,13 +86,15 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.sarthak.movieshelf.R
 import com.sarthak.movieshelf.domain.model.MovieItem
+import com.sarthak.movieshelf.domain.model.Review
 import com.sarthak.movieshelf.domain.model.VideoItem
 import com.sarthak.movieshelf.domain.model.getDirectorsList
 import com.sarthak.movieshelf.domain.model.getReleaseYear
 import com.sarthak.movieshelf.domain.model.getYoutubeVideoItems
 import com.sarthak.movieshelf.ui.ErrorScreen
 import com.sarthak.movieshelf.ui.LoadingScreen
-import com.sarthak.movieshelf.ui.theme.MovieShelfTheme
+import com.sarthak.movieshelf.ui.ReviewElement
+import com.sarthak.movieshelf.ui.Route
 import com.sarthak.movieshelf.utils.IMAGE_BASE_URL
 
 @Composable
@@ -102,12 +107,13 @@ fun MovieDetailsScreen(navController: NavHostController, id: Int) {
         LoadingScreen()
     } else {
         if(movieDetailsState.value.movieItem.id != -1)
-            MovieDetails(movieDetailsState.value.movieItem, navController)
+            MovieDetails(movieDetailsState.value, navController)
     }
 }
 
 @Composable
-fun MovieDetails(movieItem: MovieItem, navController: NavHostController) {
+fun MovieDetails(movieDetailsState: MovieDetailsState, navController: NavHostController) {
+    val movieItem = movieDetailsState.movieItem
     val scrollState = rememberLazyListState()
     var imageOffset by remember { mutableStateOf(Offset.Zero) }
     var imageHeightPx by remember { mutableIntStateOf(0) }
@@ -123,6 +129,15 @@ fun MovieDetails(movieItem: MovieItem, navController: NavHostController) {
                 navController
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate("${Route.ADD_REVIEW_SCREEN}?id=${movieItem.id},posterPath=${movieItem.posterPath},title=${movieItem.title},releaseDate=${movieItem.releaseDate}") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White
+            ){
+                Icon(Icons.Filled.Add,"")
+            }
+        }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {}
 
@@ -157,9 +172,7 @@ fun MovieDetails(movieItem: MovieItem, navController: NavHostController) {
                                     }
 
                             )
-                            Divider(
-                                thickness = 16.dp,
-                                color = Color.Transparent,
+                            HorizontalDivider(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
                                     .background(
@@ -169,7 +182,9 @@ fun MovieDetails(movieItem: MovieItem, navController: NavHostController) {
                                                 MaterialTheme.colorScheme.background
                                             )
                                         )
-                                    )
+                                    ),
+                                thickness = 16.dp,
+                                color = Color.Transparent
                             )
                             detailsPadding = PaddingValues(0.dp)
                         } else {
@@ -195,15 +210,27 @@ fun MovieDetails(movieItem: MovieItem, navController: NavHostController) {
                                 .padding(end = 8.dp)
                         )
                         Poster(movieItem, modifier = Modifier.weight(1F))
-                        //TODO - Change weights for landscape mode
                     }
 
                     MovieDescription(movieItem, modifier = Modifier.padding(start = 12.dp, end = 12.dp))
                     CustomDivider()
-                    RatingComponent(movieItem, modifier = Modifier.padding(start = 12.dp, end = 12.dp))
+                    RatingComponent(
+                        movieItem,
+                        movieDetailsState.movieShelfRatingAverage,
+                        movieDetailsState.movieShelfRatingCount,
+                        modifier = Modifier
+                            .padding(start = 12.dp, end = 12.dp)
+                    )
                     CustomDivider()
                     TabRowComponent(movieItem)
+                    CustomDivider()
+                    ReviewSection(
+                        movieDetailsState.reviewsWithUsername,
+                        modifier = Modifier
+                            .padding(start = 12.dp, end = 12.dp)
+                    )
                     Spacer(modifier = Modifier.height(64.dp))
+
                 }
             }
         }
@@ -218,6 +245,38 @@ fun MovieDetails(movieItem: MovieItem, navController: NavHostController) {
                         }
                     }
             }
+        }
+    }
+}
+
+@Composable
+fun ReviewSection(reviewsWithUsername: List<Pair<Review, String>>, modifier: Modifier) {
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            text = "Reviews",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        if(reviewsWithUsername.isNotEmpty()) {
+            for(reviewWithUsername in reviewsWithUsername) {
+                if(reviewWithUsername.first.reviewText.isNotBlank()) {
+                    ReviewElement(
+                        username = reviewWithUsername.second,
+                        rating = reviewWithUsername.first.rating.toFloat(),
+                        reviewText = reviewWithUsername.first.reviewText,
+                        viewingDateInMillis = reviewWithUsername.first.viewingDateInMillis,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = "No one reviewed this movie. :(",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
     }
 }
@@ -445,7 +504,7 @@ fun PersonInfoElement(imgUrl: String, name: String, role: String, modifier: Modi
 }
 
 @Composable
-fun RatingComponent(movieItem: MovieItem, modifier: Modifier) {
+fun RatingComponent(movieItem: MovieItem, movieShelfRatingAverage: Float, movieShelfRatingCount: Int, modifier: Modifier) {
     Column(
         modifier = modifier
     ) {
@@ -457,12 +516,15 @@ fun RatingComponent(movieItem: MovieItem, modifier: Modifier) {
         val tmdbRating = if(movieItem.voteAverage > 0) {
             movieItem.voteAverage / 2
         } else movieItem.voteAverage
-        RatingCard("TMDB", tmdbRating, movieItem.voteCount)
+        RatingCard("TMDB", tmdbRating.toFloat(), movieItem.voteCount)
+        if(movieShelfRatingCount != -1) {
+            RatingCard("Movie Shelf", movieShelfRatingAverage, movieShelfRatingCount)
+        }
     }
 }
 
 @Composable
-fun RatingCard(source: String, averageRating: Double, voteCount: Int, modifier: Modifier = Modifier) {
+fun RatingCard(source: String, averageRating: Float, voteCount: Int, modifier: Modifier = Modifier) {
     Card(
         shape = MaterialTheme.shapes.extraSmall,
         modifier = modifier
@@ -665,7 +727,7 @@ fun MovieMetaDataComponent(movieItem: MovieItem, modifier: Modifier = Modifier) 
 
 @Composable
 fun CustomDivider() {
-    Divider(
+    HorizontalDivider(
         thickness = 2.dp,
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -682,7 +744,7 @@ fun MovieTopAppBar(title: String, alpha: Float, navController: NavHostController
         navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Go Back Icon",
                     modifier = Modifier.size(32.dp)
                 )
@@ -695,13 +757,4 @@ fun MovieTopAppBar(title: String, alpha: Float, navController: NavHostController
         },
         colors = topAppBarColors(containerColor = topAppBarContainerColor),
     )
-}
-
-@Preview
-@Composable
-fun MyPreview()
-{
-    MovieShelfTheme {
-
-    }
 }

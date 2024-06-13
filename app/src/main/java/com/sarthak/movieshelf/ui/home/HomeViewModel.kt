@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sarthak.movieshelf.data.remote.api.TmdbApi.Companion.API_KEY
 import com.sarthak.movieshelf.domain.model.MovieListResponseItem
 import com.sarthak.movieshelf.domain.repository.MovieRepository
+import com.sarthak.movieshelf.service.AuthService
 import com.sarthak.movieshelf.utils.FetchResult
 import com.sarthak.movieshelf.utils.MOVIES_LIST_TYPE
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val movieRepository: MovieRepository
+    private val movieRepository: MovieRepository,
+    private val authService: AuthService
 ): ViewModel() {
 
     private val _state = MutableStateFlow(HomeState())
@@ -23,8 +25,9 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getTrendingMoviesForWeek()
-            getUpcomingMovies()
-            getTopRatedMovies()
+//            getUpcomingMovies()
+//            getTopRatedMovies()
+            getUsername()
         }
     }
 
@@ -54,13 +57,13 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                     is FetchResult.Success -> {
-                        fetchResult.data.let {
+                        fetchResult.data?.let {
                             _state.value = _state.value.copy(
                                 trendingState = _state.value.trendingState.copy(
                                     isLoading = false,
                                     isError = false,
                                     errorMessage = "",
-                                    moviesResponse = fetchResult.data!!
+                                    moviesResponse = fetchResult.data
                                 )
                             )
                         }
@@ -96,13 +99,13 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                     is FetchResult.Success -> {
-                        fetchResult.data.let {
+                        fetchResult.data?.let {
                             _state.value = _state.value.copy(
                                 topRatedState = _state.value.topRatedState.copy(
                                     isLoading = false,
                                     isError = false,
                                     errorMessage = "",
-                                    moviesResponse = fetchResult.data!!
+                                    moviesResponse = fetchResult.data
                                 )
                             )
                         }
@@ -138,13 +141,13 @@ class HomeViewModel @Inject constructor(
                         )
                     }
                     is FetchResult.Success -> {
-                        fetchResult.data.let {
+                        fetchResult.data?.let {
                             _state.value = _state.value.copy(
                                 upcomingState = _state.value.upcomingState.copy(
                                     isLoading = false,
                                     isError = false,
                                     errorMessage = "",
-                                    moviesResponse = fetchResult.data!!
+                                    moviesResponse = fetchResult.data
                                 )
                             )
                         }
@@ -153,11 +156,24 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    fun onSignOutClick() {
+        viewModelScope.launch {
+            authService.signOut()
+        }
+    }
+
+    private fun getUsername() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(username = authService.getUsername())
+        }
+    }
 }
 
 
 
 data class HomeState(
+    var username: String = "",
     var trendingState: MoviesListState = MoviesListState(),
     var upcomingState: MoviesListState = MoviesListState(),
     var topRatedState: MoviesListState = MoviesListState(),

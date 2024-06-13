@@ -6,5 +6,5 @@ sealed class FetchResult<T>(
 ) {
     class Success<T>(data: T?) : FetchResult<T>(data)
     class Error<T>(message: String, data: T? = null) : FetchResult<T>(data, message)
-    class Loading<T>(val isLoading: Boolean = true) : FetchResult<T>(null)
+    class Loading<T>() : FetchResult<T>(null)
 }
