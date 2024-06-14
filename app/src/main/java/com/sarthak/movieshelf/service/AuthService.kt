@@ -11,5 +11,5 @@ interface AuthService {
     suspend fun sendRecoveryEmail(email: String)
     suspend fun deleteAccount()
     suspend fun signOut()
-    suspend fun getUsername(): String
+    suspend fun getUsername(): Flow<FetchResult<String>>
 }

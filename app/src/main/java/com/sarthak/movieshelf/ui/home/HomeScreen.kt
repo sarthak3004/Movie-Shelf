@@ -63,7 +63,7 @@ fun HomeScreen(navController: NavHostController) {
         drawerState = drawerState,
         drawerContent = {
             DrawerContentForNavSheet(
-                username = homeState.value.username,
+                username = homeState.value.userDataState.username,
                 onSignOutClick = { homeViewModel.onSignOutClick() },
                 navController = navController
             )

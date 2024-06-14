@@ -62,15 +62,16 @@ class AuthServiceImpl @Inject constructor(private val auth: FirebaseAuth, privat
         auth.signOut()
     }
 
-    override suspend fun getUsername(): String {
-        return try {
+    override suspend fun getUsername(): Flow<FetchResult<String>> = flow {
+        try {
             auth.currentUser?.let {
-                fireStoreServiceImpl.getUsername(it.uid)
+                emit(FetchResult.Success(fireStoreServiceImpl.getUsername(it.uid)))
+                return@flow
             }
-            ""
+            emit(FetchResult.Success(""))
         } catch (e: Exception) {
             e.printStackTrace()
-            ""
+            emit(FetchResult.Error(e.toString()))
         }
     }
 }

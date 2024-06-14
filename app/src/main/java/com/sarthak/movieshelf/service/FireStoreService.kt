@@ -23,7 +23,10 @@ interface FireStoreService {
         viewingDate: Long? = null
     ) : Flow<FetchResult<String>>
 
-    suspend fun getRatingAverageAndCount(movieId: Int): Pair<Float, Int>
+    suspend fun getRatingAverageAndCount(movieId: Int): Flow<FetchResult<Pair<Float, Int>>>
 
-    suspend fun getReviews(movieId: Int): List<Pair<Review,String>>
+    suspend fun getReviews(movieId: Int): Flow<FetchResult<List<Pair<Review,String>>>>
+
+    suspend fun isMovieInWatchlist(userId: String, movieId: Int): Boolean
+    suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Unit>>
 }

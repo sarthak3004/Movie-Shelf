@@ -33,11 +33,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -52,6 +50,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -101,18 +100,28 @@ import com.sarthak.movieshelf.utils.IMAGE_BASE_URL
 fun MovieDetailsScreen(navController: NavHostController, id: Int) {
     val movieDetailsViewModel: MovieDetailsViewModel = hiltViewModel()
     val movieDetailsState = movieDetailsViewModel.state.collectAsState()
+    val movieShelfDataState = movieDetailsViewModel.movieShelfDataState.collectAsState()
+    LaunchedEffect(Unit) {
+        movieDetailsViewModel.refreshFireStoreData()
+    }
     if (movieDetailsState.value.isError) {
         ErrorScreen()
     } else if (movieDetailsState.value.isLoading) {
         LoadingScreen()
     } else {
-        if(movieDetailsState.value.movieItem.id != -1)
-            MovieDetails(movieDetailsState.value, navController)
+        if(movieDetailsState.value.movieItem.id != -1) {
+//            Log.d("MOVIE_DETAILS_SCREEN",movieShelfRatingAverageAndCount.value.first.toString())
+            MovieDetails(movieDetailsState.value, movieShelfDataState, navController)
+        }
     }
 }
 
 @Composable
-fun MovieDetails(movieDetailsState: MovieDetailsState, navController: NavHostController) {
+fun MovieDetails(
+    movieDetailsState: MovieDetailsState,
+    movieShelfDataState: State<MovieShelfDataState>,
+    navController: NavHostController
+) {
     val movieItem = movieDetailsState.movieItem
     val scrollState = rememberLazyListState()
     var imageOffset by remember { mutableStateOf(Offset.Zero) }
@@ -216,11 +225,12 @@ fun MovieDetails(movieDetailsState: MovieDetailsState, navController: NavHostCon
                     CustomDivider()
                     RatingComponent(
                         movieItem,
-                        movieDetailsState.movieShelfRatingAverage,
-                        movieDetailsState.movieShelfRatingCount,
+                        movieShelfDataState,
                         modifier = Modifier
                             .padding(start = 12.dp, end = 12.dp)
                     )
+                    CustomDivider()
+                    WatchListComponent()
                     CustomDivider()
                     TabRowComponent(movieItem)
                     CustomDivider()
@@ -247,6 +257,11 @@ fun MovieDetails(movieDetailsState: MovieDetailsState, navController: NavHostCon
             }
         }
     }
+}
+
+@Composable
+fun WatchListComponent() {
+
 }
 
 @Composable
@@ -504,7 +519,7 @@ fun PersonInfoElement(imgUrl: String, name: String, role: String, modifier: Modi
 }
 
 @Composable
-fun RatingComponent(movieItem: MovieItem, movieShelfRatingAverage: Float, movieShelfRatingCount: Int, modifier: Modifier) {
+fun RatingComponent(movieItem: MovieItem, movieShelfDataState: State<MovieShelfDataState>, modifier: Modifier) {
     Column(
         modifier = modifier
     ) {
@@ -517,8 +532,18 @@ fun RatingComponent(movieItem: MovieItem, movieShelfRatingAverage: Float, movieS
             movieItem.voteAverage / 2
         } else movieItem.voteAverage
         RatingCard("TMDB", tmdbRating.toFloat(), movieItem.voteCount)
-        if(movieShelfRatingCount != -1) {
-            RatingCard("Movie Shelf", movieShelfRatingAverage, movieShelfRatingCount)
+        if(movieShelfDataState.value.isLoading) {
+            Row(modifier = Modifier.height(32.dp)) {
+                LoadingScreen()
+            }
+        } else if(movieShelfDataState.value.isError) {
+            Row(modifier = Modifier.height(32.dp)) {
+                ErrorScreen()
+            }
+        } else {
+            if(movieShelfDataState.value.movieShelfRatingCount != -1) {
+                RatingCard("Movie Shelf", movieShelfDataState.value.movieShelfRatingAverage, movieShelfDataState.value.movieShelfRatingCount)
+            }
         }
     }
 }

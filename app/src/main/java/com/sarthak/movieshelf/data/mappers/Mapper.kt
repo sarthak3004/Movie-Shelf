@@ -58,9 +58,9 @@ fun MovieItemDto.toMovieItem() = MovieItem(
     title = title ?: "",
     releaseDate = release_date ?: "",
     runtime = runtime ?: -1,
-    videos = videos.let {
-        videos?.results.let {
-            it?.map {videoItemDto ->
+    videos = videos?.let {
+        videos.results?.let {
+            it.map {videoItemDto ->
                 videoItemDto.toVideoItem()
             }
         }
@@ -70,34 +70,34 @@ fun MovieItemDto.toMovieItem() = MovieItem(
     overview = overview ?: "",
     voteAverage = vote_average ?: -1.0,
     voteCount = vote_count ?: -1,
-    cast = credits.let {
-        credits?.cast.let {
-            it?.map {castDto ->
+    cast = credits?.let {
+        credits.cast?.let {
+            it.map {castDto ->
                 castDto.toCast()
             }
         }
     } ?: emptyList(),
-    crew = credits.let {
-        credits?.crew.let {
-            it?.map {crewDto ->
+    crew = credits?.let {
+        credits.crew?.let {
+            it.map {crewDto ->
                 crewDto.toCrew()
             }
         }
     } ?: emptyList(),
-    genres = genres.let {
-        genres?.map {genreItemDto ->
+    genres = genres?.let {
+        genres.map {genreItemDto ->
             genreItemDto.name
         }
     } ?: emptyList(),
     originCountry = origin_country ?: emptyList(),
     originalLanguage = original_language ?: "",
-    productionCompanies = production_companies.let {
-        production_companies?.map {productionCompanyItemDto ->
+    productionCompanies = production_companies?.let {
+        production_companies.map {productionCompanyItemDto ->
             productionCompanyItemDto.name
         }
     } ?: emptyList(),
-    spokenLanguages = spoken_languages.let {
-        spoken_languages?.map {
+    spokenLanguages = spoken_languages?.let {
+        spoken_languages.map {
             it.name
         }
     } ?: emptyList()

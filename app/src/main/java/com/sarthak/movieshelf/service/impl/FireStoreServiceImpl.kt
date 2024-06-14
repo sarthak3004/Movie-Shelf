@@ -105,9 +105,9 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
         }
     }
 
-    override suspend fun getRatingAverageAndCount(movieId: Int): Pair<Float, Int> {
-        var result = Pair<Float, Int>(-1.0F, -1)
-        return try {
+    override suspend fun getRatingAverageAndCount(movieId: Int): Flow<FetchResult<Pair<Float, Int>>> = flow {
+        try {
+            emit(FetchResult.Loading())
             val ratingQuery = firestore.collection("ratings")
                 .whereEqualTo("movieId", movieId)
 
@@ -115,19 +115,19 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
             if (!querySnapshot.isEmpty) {
                 val totalRating = querySnapshot.documents.mapNotNull { it.getDouble("rating") }.sum()
                 val averageRating = totalRating / querySnapshot.size()
-                result = result.copy(first = averageRating.toFloat(), second = querySnapshot.size())
-                result
+                emit(FetchResult.Success(Pair<Float, Int>(averageRating.toFloat(), querySnapshot.size())))
             } else {
-                result
+                emit(FetchResult.Success(Pair<Float, Int>(-1.0F, -1)))
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            result
+            emit(FetchResult.Error(e.toString()))
         }
     }
 
-    override suspend fun getReviews(movieId: Int): List<Pair<Review, String>> {
-        return try {
+    override suspend fun getReviews(movieId: Int): Flow<FetchResult<List<Pair<Review, String>>>> = flow {
+        try {
+            emit(FetchResult.Loading())
             val ratingQuery = firestore.collection("reviews")
                 .whereEqualTo("movieId", movieId)
 
@@ -138,13 +138,46 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
                     val username = getUsername(review!!.userId)
                     Pair<Review, String>(review, username)
                 }
-                reviewsList
+                emit(FetchResult.Success(reviewsList))
             } else {
-                emptyList()
+                emit(FetchResult.Success(emptyList()))
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            emptyList()
+            emit(FetchResult.Error(e.toString()))
+        }
+    }
+
+    override suspend fun isMovieInWatchlist(userId: String, movieId: Int): Boolean {
+        return try {
+            val userRef = firestore.collection("users").document(userId)
+            val userSnapshot = userRef.get().await()
+            val watchlist = userSnapshot.get("watchlist") as? List<Int>
+            watchlist?.contains(movieId) ?: false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+    override suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Unit>> = flow {
+        try {
+            emit(FetchResult.Loading())
+            val userRef = firestore.collection("users").document(userId)
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(userRef)
+                val currentWatchlist = snapshot.get("watchlist") as? List<Int> ?: emptyList()
+                val updatedWatchlist = currentWatchlist.toMutableList()
+                if (!updatedWatchlist.contains(movieId)) {
+                    updatedWatchlist.add(movieId)
+                } else {
+                    updatedWatchlist.remove(movieId)
+                }
+                transaction.update(userRef, "watchlist", updatedWatchlist)
+            }.await()
+            emit(FetchResult.Success(null))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(FetchResult.Error(e.toString()))
         }
     }
 }

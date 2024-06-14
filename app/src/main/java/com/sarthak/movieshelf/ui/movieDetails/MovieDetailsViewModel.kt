@@ -1,5 +1,6 @@
 package com.sarthak.movieshelf.ui.movieDetails
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,7 @@ import com.sarthak.movieshelf.domain.repository.MovieRepository
 import com.sarthak.movieshelf.service.FireStoreService
 import com.sarthak.movieshelf.utils.FetchResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -24,39 +26,88 @@ class MovieDetailsViewModel @Inject constructor(
     private val movieId = checkNotNull(savedStateHandle.get<Int>("id"))
     private val _state = MutableStateFlow(MovieDetailsState())
     val state: StateFlow<MovieDetailsState> = _state
+    private val _movieShelfDataState = MutableStateFlow(MovieShelfDataState())
+    val movieShelfDataState: StateFlow<MovieShelfDataState> = _movieShelfDataState
+
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            refreshFireStoreData()
             getMovieById(movieId)
-            getMovieShelfRatingAverageAndCount()
-            getReviewsWithUsername()
         }
     }
 
     private fun getReviewsWithUsername() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(
-                reviewsWithUsername = fireStoreService.getReviews(movieId)
-            )
+        viewModelScope.launch((Dispatchers.IO)) {
+            fireStoreService.getReviews(movieId).collect{fetchResult ->
+                when(fetchResult) {
+                    is FetchResult.Loading -> {
+                        _state.value = _state.value.copy(
+                            reviewsWithUsername = emptyList()
+                        )
+                    }
+                    is FetchResult.Error -> {
+                        _state.value = _state.value.copy(
+                            reviewsWithUsername = emptyList()
+                        )
+                    }
+                    is FetchResult.Success -> {
+                        fetchResult.data?.let {
+                            _state.value = _state.value.copy(
+                                reviewsWithUsername = fetchResult.data
+                            )
+                        }
+                    }
+                }
+
+            }
         }
     }
 
     private fun getMovieShelfRatingAverageAndCount() {
-        viewModelScope.launch {
-            val ratingAverageAndCount = fireStoreService.getRatingAverageAndCount(movieId)
-            _state.value = _state.value.copy(
-                movieShelfRatingAverage = ratingAverageAndCount.first,
-                movieShelfRatingCount = ratingAverageAndCount.second
-            )
+        viewModelScope.launch((Dispatchers.IO)) {
+            fireStoreService.getRatingAverageAndCount(movieId).collect() {fetchResult ->
+                when(fetchResult) {
+                    is FetchResult.Error -> {
+                        _movieShelfDataState.value = _movieShelfDataState.value.copy(
+                            isError = true,
+                            isLoading = false,
+                            errorMessage = fetchResult.message,
+                            movieShelfRatingAverage = -1.0F,
+                            movieShelfRatingCount = -1,
+                        )
+                    }
+                    is FetchResult.Loading -> {
+                        _movieShelfDataState.value = _movieShelfDataState.value.copy(
+                            isLoading = true,
+                            isError = false,
+                            errorMessage = "",
+                            movieShelfRatingAverage = -1.0F,
+                            movieShelfRatingCount = -1,
+                        )
+                    }
+                    is FetchResult.Success -> {
+                        fetchResult.data?.let {
+                            _movieShelfDataState.value = _movieShelfDataState.value.copy(
+                                isLoading = false,
+                                isError = false,
+                                errorMessage = "",
+                                movieShelfRatingAverage = fetchResult.data.first,
+                                movieShelfRatingCount = fetchResult.data.second,
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
     private suspend fun getMovieById(movieId: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch((Dispatchers.IO)) {
             getMovieDetailsById()
         }
     }
 
     private suspend fun getMovieDetailsById() {
-        viewModelScope.launch {
+        viewModelScope.launch((Dispatchers.IO)) {
 
             movieRepository.getMovieById(
                 id = movieId.toString(),
@@ -95,16 +146,29 @@ class MovieDetailsViewModel @Inject constructor(
         }
 
     }
+
+    fun refreshFireStoreData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            getMovieShelfRatingAverageAndCount()
+            getReviewsWithUsername()
+        }
+    }
 }
 
 
 
 data class MovieDetailsState(
     val movieItem: MovieItem = MovieItem(),
-    val movieShelfRatingAverage: Float = -1.0F,
-    val movieShelfRatingCount: Int  = -1,
     val isLoading: Boolean = false,
     val isError: Boolean = false,
     val errorMessage: String = "",
     val reviewsWithUsername: List<Pair<Review, String>> = emptyList()
+)
+
+data class MovieShelfDataState(
+    val movieShelfRatingAverage: Float = -1.0F,
+    val movieShelfRatingCount: Int = -1,
+    val isLoading: Boolean = false,
+    val isError: Boolean = false,
+    val errorMessage: String = "",
 )
