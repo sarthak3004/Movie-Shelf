@@ -1,11 +1,9 @@
 package com.sarthak.movieshelf.service.impl
 
-import android.util.Log
-import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
+import com.sarthak.movieshelf.domain.model.MinimalMovieItem
 import com.sarthak.movieshelf.domain.model.Review
 import com.sarthak.movieshelf.domain.model.User
-import com.sarthak.movieshelf.service.AuthService
 import com.sarthak.movieshelf.service.FireStoreService
 import com.sarthak.movieshelf.utils.FetchResult
 import kotlinx.coroutines.flow.Flow
@@ -115,9 +113,9 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
             if (!querySnapshot.isEmpty) {
                 val totalRating = querySnapshot.documents.mapNotNull { it.getDouble("rating") }.sum()
                 val averageRating = totalRating / querySnapshot.size()
-                emit(FetchResult.Success(Pair<Float, Int>(averageRating.toFloat(), querySnapshot.size())))
+                emit(FetchResult.Success(Pair(averageRating.toFloat(), querySnapshot.size())))
             } else {
-                emit(FetchResult.Success(Pair<Float, Int>(-1.0F, -1)))
+                emit(FetchResult.Success(Pair(-1.0F, -1)))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -136,7 +134,7 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
                 val reviewsList = querySnapshot.documents.mapNotNull {
                     val review = it.toObject(Review::class.java)
                     val username = getUsername(review!!.userId)
-                    Pair<Review, String>(review, username)
+                    Pair(review, username)
                 }
                 emit(FetchResult.Success(reviewsList))
             } else {
@@ -168,10 +166,27 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
             emit(FetchResult.Error(e.toString()))
         }
     }
-    override suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>> = flow {
+    override suspend fun updateWatchlist(
+        userId: String,
+        movieId: Int,
+        posterPath: Any,
+        title: Any,
+        releaseDate: Any
+    ): Flow<FetchResult<Boolean>> = flow {
         try {
             emit(FetchResult.Loading())
             val userRef = firestore.collection("users").document(userId)
+            val moviesRef  = firestore.collection("movies").document(movieId.toString())
+            val movieDoc = moviesRef.get().await()
+            if(!movieDoc.exists()) {
+                val movieData = hashMapOf(
+                    "movieId" to movieId,
+                    "title" to title,
+                    "posterPath" to posterPath,
+                    "releaseDate" to releaseDate
+                )
+                moviesRef.set(movieData)
+            }
             firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(userRef)
                 val currentWatchlist = snapshot.get("watchlist") as? List<Int> ?: emptyList()
@@ -198,6 +213,34 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
                 transaction.update(userRef, "watchlist", updatedWatchlist)
             }.await()
             emit(FetchResult.Success(true))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(FetchResult.Error(e.toString()))
+        }
+    }
+
+    override suspend fun getMoviesInWatchlist(userId: String): Flow<FetchResult<List<MinimalMovieItem>>> = flow {
+        try {
+            emit(FetchResult.Loading())
+            val userRef = firestore.collection("users").document(userId)
+            val userSnapshot = userRef.get().await()
+            val watchlist = userSnapshot.get("watchlist") as? List<Int> ?: emptyList()
+
+            if (watchlist.isEmpty()) {
+                emit(FetchResult.Success(emptyList()))
+                return@flow
+            }
+
+            val movieDocuments = watchlist.map { movieId ->
+                firestore.collection("movies").document(movieId.toString()).get().await()
+            }
+
+            val movies = movieDocuments.mapNotNull { doc ->
+                doc.toObject(MinimalMovieItem::class.java)
+            }
+
+            emit(FetchResult.Success(movies))
+
         } catch (e: Exception) {
             e.printStackTrace()
             emit(FetchResult.Error(e.toString()))

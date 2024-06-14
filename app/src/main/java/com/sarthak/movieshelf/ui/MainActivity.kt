@@ -22,16 +22,17 @@ import com.sarthak.movieshelf.ui.login.LoginScreen
 import com.sarthak.movieshelf.ui.movieDetails.MovieDetailsScreen
 import com.sarthak.movieshelf.ui.signup.SignUpScreen
 import com.sarthak.movieshelf.ui.theme.MovieShelfTheme
+import com.sarthak.movieshelf.ui.watchlist.WatchlistScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (BuildConfig.DEBUG) {
-            Firebase.auth.useEmulator("10.0.2.2", 9099)
-            Firebase.firestore.useEmulator("10.0.2.2", 8080)
-        }
+//        if (BuildConfig.DEBUG) {
+//            Firebase.auth.useEmulator("10.0.2.2", 9099)
+//            Firebase.firestore.useEmulator("10.0.2.2", 8080)
+//        }
         val auth = Firebase.auth
 
         enableEdgeToEdge()
@@ -104,6 +105,10 @@ fun Navigation(isLoggedIn: Boolean) {
                 title = title,
                 releaseDate = releaseDate
             ), navController)
+        }
+
+        composable(Route.WATCHLIST_SCREEN) {
+            WatchlistScreen(navController = navController)
         }
     }
 }

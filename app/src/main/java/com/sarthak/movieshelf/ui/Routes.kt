@@ -6,5 +6,6 @@ object Route {
     const val BASIC_SEARCH_SCREEN = "Basic Search Screen"
     const val SIGNUP_SCREEN = "Signup Screen"
     const val LOGIN_SCREEN = "Login Screen"
-    const val ADD_REVIEW_SCREEN ="Add Review Screen"
+    const val ADD_REVIEW_SCREEN = "Add Review Screen"
+    const val WATCHLIST_SCREEN = "Watchlist Screen"
 }

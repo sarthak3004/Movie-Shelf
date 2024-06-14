@@ -185,6 +185,7 @@ fun DrawerContentForNavSheet(username: String, onSignOutClick: () -> Unit, navCo
             selected = selectedItem == 1,
             onClick = {
                 selectedItem = 1
+                navController.navigate(Route.WATCHLIST_SCREEN)
             }
         )
         NavigationDrawerItem(

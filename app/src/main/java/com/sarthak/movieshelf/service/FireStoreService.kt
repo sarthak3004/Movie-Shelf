@@ -1,6 +1,6 @@
 package com.sarthak.movieshelf.service
 
-import com.google.firebase.auth.FirebaseUser
+import com.sarthak.movieshelf.domain.model.MinimalMovieItem
 import com.sarthak.movieshelf.domain.model.Review
 import com.sarthak.movieshelf.domain.model.User
 import com.sarthak.movieshelf.utils.FetchResult
@@ -28,5 +28,12 @@ interface FireStoreService {
     suspend fun getReviews(movieId: Int): Flow<FetchResult<List<Pair<Review,String>>>>
 
     suspend fun isMovieInWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>>
-    suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>>
+    suspend fun updateWatchlist(
+        userId: String,
+        movieId: Int,
+        posterPath: Any,
+        title: Any,
+        releaseDate: Any
+    ): Flow<FetchResult<Boolean>>
+    suspend fun getMoviesInWatchlist(userId: String): Flow<FetchResult<List<MinimalMovieItem>>>
 }
