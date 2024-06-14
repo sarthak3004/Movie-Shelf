@@ -27,6 +27,6 @@ interface FireStoreService {
 
     suspend fun getReviews(movieId: Int): Flow<FetchResult<List<Pair<Review,String>>>>
 
-    suspend fun isMovieInWatchlist(userId: String, movieId: Int): Boolean
-    suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Unit>>
+    suspend fun isMovieInWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>>
+    suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>>
 }

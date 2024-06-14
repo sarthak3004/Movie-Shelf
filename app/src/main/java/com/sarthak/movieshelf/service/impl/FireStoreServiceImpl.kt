@@ -148,33 +148,56 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
         }
     }
 
-    override suspend fun isMovieInWatchlist(userId: String, movieId: Int): Boolean {
-        return try {
+    override suspend fun isMovieInWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>> = flow {
+        try {
+            emit(FetchResult.Loading())
             val userRef = firestore.collection("users").document(userId)
             val userSnapshot = userRef.get().await()
             val watchlist = userSnapshot.get("watchlist") as? List<Int>
-            watchlist?.contains(movieId) ?: false
+            var isInWatchList = false
+            if (watchlist != null) {
+                for(item in watchlist) {
+                    if(item == movieId) {
+                        isInWatchList = true
+                    }
+                }
+            }
+            emit(FetchResult.Success(isInWatchList))
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            emit(FetchResult.Error(e.toString()))
         }
     }
-    override suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Unit>> = flow {
+    override suspend fun updateWatchlist(userId: String, movieId: Int): Flow<FetchResult<Boolean>> = flow {
         try {
             emit(FetchResult.Loading())
             val userRef = firestore.collection("users").document(userId)
             firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(userRef)
                 val currentWatchlist = snapshot.get("watchlist") as? List<Int> ?: emptyList()
-                val updatedWatchlist = currentWatchlist.toMutableList()
-                if (!updatedWatchlist.contains(movieId)) {
-                    updatedWatchlist.add(movieId)
+                var isInWatchList = false
+                for(item in currentWatchlist) {
+                    if(item == movieId) {
+                        isInWatchList = true
+                    }
+                }
+                var updatedWatchlist: MutableList<Int> = ArrayList()
+                if(isInWatchList) {
+                    for(item in currentWatchlist) {
+                        if(item == movieId) {
+                            continue
+                        }
+                        updatedWatchlist.add(item)
+                    }
                 } else {
-                    updatedWatchlist.remove(movieId)
+                    for(item in currentWatchlist) {
+                        updatedWatchlist.add(item)
+                    }
+                    updatedWatchlist.add(movieId)
                 }
                 transaction.update(userRef, "watchlist", updatedWatchlist)
             }.await()
-            emit(FetchResult.Success(null))
+            emit(FetchResult.Success(true))
         } catch (e: Exception) {
             e.printStackTrace()
             emit(FetchResult.Error(e.toString()))
