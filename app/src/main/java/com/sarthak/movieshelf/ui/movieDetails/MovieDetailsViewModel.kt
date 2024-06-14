@@ -160,7 +160,13 @@ class MovieDetailsViewModel @Inject constructor(
     fun updateWatchList() {
         viewModelScope.launch(Dispatchers.IO) {
             authService.getCurrentUser()?.let {
-                fireStoreService.updateWatchlist(it.uid, movieId).collect{fetchResult ->
+                fireStoreService.updateWatchlist(
+                    userId = it.uid,
+                    movieId = movieId,
+                    posterPath = _state.value.movieItem.posterPath,
+                    title = _state.value.movieItem.title,
+                    releaseDate = _state.value.movieItem.releaseDate
+                ).collect{fetchResult ->
                     when(fetchResult) {
                         is FetchResult.Loading -> {
                             _watchlistState.value = _watchlistState.value.copy(
