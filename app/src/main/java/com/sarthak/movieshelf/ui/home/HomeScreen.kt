@@ -194,7 +194,11 @@ fun DrawerContentForNavSheet(username: String, onSignOutClick: () -> Unit, navCo
             onClick = {
                 selectedItem = 2
                 onSignOutClick()
-                navController.navigate(Route.LOGIN_SCREEN)
+                navController.navigate(Route.LOGIN_SCREEN) {
+                    popUpTo(Route.HOME_SCREEN) {
+                        inclusive = true
+                    }
+                }
             }
         )
     }

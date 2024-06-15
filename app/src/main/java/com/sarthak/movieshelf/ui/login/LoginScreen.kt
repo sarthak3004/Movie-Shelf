@@ -15,6 +15,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -41,14 +43,22 @@ fun LoginScreen(navController: NavController) {
         ) {
 
             Text(
-                text = "Login to your Movie Shelf",
+                text = "Movie Shelf",
+                style = MaterialTheme.typography.displayMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)
+            )
+            Text(
+                text = "Login",
                 style = MaterialTheme.typography.displaySmall,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)
             )
             EmailTextField(
                 email = email,
                 onEmailChange = loginViewModel::onEmailChange,
                 labelText = "Email",
+                imeAction = ImeAction.Next,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -60,6 +70,7 @@ fun LoginScreen(navController: NavController) {
                 password = password,
                 onPasswordChange = loginViewModel::onPasswordChange,
                 labelText = "Password",
+                imeAction = ImeAction.Done,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(

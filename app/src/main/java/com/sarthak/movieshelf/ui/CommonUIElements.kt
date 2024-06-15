@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -119,7 +120,12 @@ fun MoviePosterList(
 }
 
 @Composable
-fun EmailTextField(email: String, onEmailChange: (String) -> Unit, labelText: String, modifier: Modifier = Modifier) {
+fun EmailTextField(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    labelText: String,
+    imeAction: ImeAction,
+    modifier: Modifier = Modifier) {
     TextField(
         value = email,
         onValueChange = onEmailChange,
@@ -129,6 +135,7 @@ fun EmailTextField(email: String, onEmailChange: (String) -> Unit, labelText: St
                 style = MaterialTheme.typography.labelSmall
             )
         },
+        singleLine = true,
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Email,
@@ -136,6 +143,9 @@ fun EmailTextField(email: String, onEmailChange: (String) -> Unit, labelText: St
                 tint = MaterialTheme.colorScheme.primary
             )
         },
+        keyboardOptions = KeyboardOptions(
+            imeAction = imeAction
+        ),
         colors = TextFieldDefaults.colors(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
@@ -150,6 +160,7 @@ fun PasswordTextField(
     password: String,
     onPasswordChange: (String) -> Unit,
     labelText: String,
+    imeAction: ImeAction,
     modifier: Modifier = Modifier
 ) {
     var showPassword by remember { mutableStateOf(false) }
@@ -163,12 +174,17 @@ fun PasswordTextField(
                 style = MaterialTheme.typography.labelSmall,
             )
         },
+        singleLine = true,
         visualTransformation = if(showPassword) {
             VisualTransformation.None
         } else {
             passwordVisualTransformation
         },
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = imeAction
+        ),
+
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Password,

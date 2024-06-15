@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
@@ -22,6 +23,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -51,8 +54,15 @@ fun SignUpScreen(navController: NavController) {
             ) {
 
                 Text(
-                    text = "Create your Movie Shelf",
+                    text = "Movie Shelf",
+                    style = MaterialTheme.typography.displayMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)
+                )
+                Text(
+                    text = "Create Account",
                     style = MaterialTheme.typography.displaySmall,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)
                 )
                 TextField(
@@ -76,6 +86,9 @@ fun SignUpScreen(navController: NavController) {
                         unfocusedIndicatorColor = Color.Transparent
                     ),
                     shape = RoundedCornerShape(24.dp),
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -89,6 +102,7 @@ fun SignUpScreen(navController: NavController) {
                     email = email,
                     onEmailChange = signUpViewModel::onEmailChange,
                     labelText = "Email",
+                    imeAction = ImeAction.Next,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -101,6 +115,7 @@ fun SignUpScreen(navController: NavController) {
                     password = password,
                     onPasswordChange = signUpViewModel::onPasswordChange,
                     labelText = "Password",
+                    imeAction = ImeAction.Next,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
@@ -113,6 +128,7 @@ fun SignUpScreen(navController: NavController) {
                     password = repeatPassword,
                     onPasswordChange = signUpViewModel::onRepeatPasswordChange,
                     labelText = "Confirm Password",
+                    imeAction = ImeAction.Done,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
