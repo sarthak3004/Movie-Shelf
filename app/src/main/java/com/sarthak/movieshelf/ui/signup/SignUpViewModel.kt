@@ -61,7 +61,7 @@ class SignUpViewModel @Inject constructor(
             _userError.value = "Username is empty"
             return
         }
-
+        _userError.value = ""
 
         viewModelScope.launch {
             try {

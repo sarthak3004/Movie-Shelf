@@ -1,16 +1,12 @@
 package com.sarthak.movieshelf.ui.login
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,11 +15,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sarthak.movieshelf.ui.EmailTextField
+import com.sarthak.movieshelf.ui.ErrorCard
 import com.sarthak.movieshelf.ui.LoadingScreen
 import com.sarthak.movieshelf.ui.PasswordTextField
 import com.sarthak.movieshelf.ui.Route
@@ -44,6 +40,11 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxSize()
         ) {
 
+            Text(
+                text = "Login to your Movie Shelf",
+                style = MaterialTheme.typography.displaySmall,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)
+            )
             EmailTextField(
                 email = email,
                 onEmailChange = loginViewModel::onEmailChange,
@@ -78,8 +79,7 @@ fun LoginScreen(navController: NavController) {
                     onClick = {
                         loginViewModel.onLoginClick {
                             navController.navigate(Route.HOME_SCREEN) {
-                                launchSingleTop = true
-                                popUpTo(Route.LOGIN_SCREEN)
+                                popUpTo(Route.LOGIN_SCREEN) { inclusive = true}
                             }
                         }
                     },
@@ -95,8 +95,7 @@ fun LoginScreen(navController: NavController) {
                 Button(
                     onClick = {
                         navController.navigate(Route.SIGNUP_SCREEN) {
-                            launchSingleTop = true
-                            popUpTo(Route.LOGIN_SCREEN)
+                            popUpTo(Route.LOGIN_SCREEN) { inclusive = true }
                         }
                     },
                     modifier = Modifier.padding(horizontal = 4.dp),
@@ -110,21 +109,11 @@ fun LoginScreen(navController: NavController) {
             }
 
             if (error.value.isNotBlank()) {
-                if (error.value.isNotBlank()) {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = error.value,
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
-                }
+                ErrorCard(error = error.value, modifier = Modifier.padding(8.dp))
             }
 
             if(state.value.isError && state.value.errorMessage.isNotBlank()) {
-                Toast.makeText(LocalContext.current, state.value.errorMessage, Toast.LENGTH_LONG).show()
+                ErrorCard(error = state.value.errorMessage, modifier = Modifier.padding(8.dp))
             }
         }
     }

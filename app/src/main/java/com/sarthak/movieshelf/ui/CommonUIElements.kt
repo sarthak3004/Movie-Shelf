@@ -251,3 +251,17 @@ fun ReviewElement(
     }
 }
 
+@Composable
+fun ErrorCard(error: String, modifier: Modifier = Modifier) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = error,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+}

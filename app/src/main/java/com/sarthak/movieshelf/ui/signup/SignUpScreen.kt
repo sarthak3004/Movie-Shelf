@@ -1,6 +1,5 @@
 package com.sarthak.movieshelf.ui.signup
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,8 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,11 +22,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sarthak.movieshelf.ui.EmailTextField
+import com.sarthak.movieshelf.ui.ErrorCard
 import com.sarthak.movieshelf.ui.LoadingScreen
 import com.sarthak.movieshelf.ui.PasswordTextField
 import com.sarthak.movieshelf.ui.Route
@@ -52,6 +49,12 @@ fun SignUpScreen(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxSize()
             ) {
+
+                Text(
+                    text = "Create your Movie Shelf",
+                    style = MaterialTheme.typography.displaySmall,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 32.dp)
+                )
                 TextField(
                     value = username,
                     onValueChange = signUpViewModel::onUsernameChange,
@@ -129,8 +132,7 @@ fun SignUpScreen(navController: NavController) {
                         onClick = {
                             signUpViewModel.onSignUpClick {
                                 navController.navigate(Route.HOME_SCREEN) {
-                                    launchSingleTop = true
-                                    popUpTo(Route.SIGNUP_SCREEN)
+                                    popUpTo(Route.SIGNUP_SCREEN) { inclusive = true }
                                 }
                             }
                         },
@@ -145,7 +147,9 @@ fun SignUpScreen(navController: NavController) {
                     }
                     Button(
                         onClick = {
-                            navController.navigate(Route.LOGIN_SCREEN)
+                            navController.navigate(Route.LOGIN_SCREEN) {
+                                popUpTo(Route.SIGNUP_SCREEN) { inclusive = true}
+                            }
                         },
                         modifier = Modifier.padding(horizontal = 4.dp)
                     ) {
@@ -157,18 +161,10 @@ fun SignUpScreen(navController: NavController) {
                     }
                 }
                 if (userError.value.isNotBlank()) {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(
-                            text = userError.value,
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    }
+                    ErrorCard(error = userError.value, modifier = Modifier.padding(8.dp))
                 }
                 if(state.value.isError && state.value.errorMessage.isNotBlank()) {
-                    Toast.makeText(LocalContext.current, state.value.errorMessage, Toast.LENGTH_LONG).show()
+                    ErrorCard(error = state.value.errorMessage, modifier = Modifier.padding(8.dp))
                 }
             }
         }

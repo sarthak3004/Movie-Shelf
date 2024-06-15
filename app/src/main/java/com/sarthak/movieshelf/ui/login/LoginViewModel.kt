@@ -29,7 +29,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onLoginClick(navigate: () -> Unit) {
-
+        _error.value = ""
         viewModelScope.launch {
             try {
                 authService.signIn(_state.value.email, _state.value.password).collect{fetchResult ->
