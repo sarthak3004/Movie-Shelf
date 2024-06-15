@@ -19,14 +19,14 @@ Movie Shelf is a native android app that allows users to search for movies by ti
 * Coil
 
 ### Screenshots
-<img src="images/1.jpg" alt=""/>
-<img src="images/2.jpg" alt=""/>
-<img src="images/3.jpg" alt=""/>
-<img src="images/4.jpg" alt=""/>
-<img src="images/5.jpg" alt=""/>
-<img src="images/6.jpg" alt=""/>
-<img src="images/7.jpg" alt=""/>
-<img src="images/8.jpg" alt=""/>
+<img src="images/1.jpg" width="268" height="600"/>
+<img src="images/2.jpg" width="268" height="600"/>
+<img src="images/3.jpg" width="268" height="600"/>
+<img src="images/4.jpg" width="268" height="600"/>
+<img src="images/5.jpg" width="268" height="600"/>
+<img src="images/6.jpg" width="268" height="600"/>
+<img src="images/7.jpg" width="268" height="600"/>
+<img src="images/8.jpg" width="268" height="600"/>
 
 ### Acknowledgements
 The Movie DataBase (TMDB) API
