@@ -231,12 +231,17 @@ class FireStoreServiceImpl @Inject constructor(private val firestore: FirebaseFi
                 return@flow
             }
 
-            val movieDocuments = watchlist.map { movieId ->
+            val movieDocumentSnapshots = watchlist.map { movieId ->
                 firestore.collection("movies").document(movieId.toString()).get().await()
             }
 
-            val movies = movieDocuments.mapNotNull { doc ->
-                doc.toObject(MinimalMovieItem::class.java)
+            val movies = movieDocumentSnapshots.mapNotNull { docSnapshot ->
+                MinimalMovieItem(
+                    id = docSnapshot.getLong("movieId")?.toInt() ?: -1,
+                    posterPath = docSnapshot.getString("posterPath") ?: "",
+                    releaseDate = docSnapshot.getString("releaseDate") ?: "",
+                    title = docSnapshot.getString("title") ?: ""
+                )
             }
 
             emit(FetchResult.Success(movies))
